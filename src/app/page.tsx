@@ -5,29 +5,28 @@ export default function Page() {
   const [userId, setUserId] = useState("");
   const [locked, setLocked] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
-  const [elapsed, setElapsed] = useState(0);
   const [clicks, setClicks] = useState(0);
 
   const timerRef = useRef<number | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
-  // 게임 시작 후 경과시간 타이머
+  // 게임 시작 후 타이머 (시간은 표시 안 하지만 기록용)
   useEffect(() => {
     if (!startedAt) return;
     timerRef.current = window.setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startedAt) / 1000));
+      /* 단순 경과시간 갱신용 (보이지 않음) */
     }, 1000) as unknown as number;
 
     const handleBeforeUnload = () => submitPlaytime(true);
     window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startedAt]);
 
-  // iframe 내부(동일 출처일 때) 클릭도 카운트
+  // iframe 내부 클릭도 집계 (동일 출처일 때만)
   useEffect(() => {
     if (!locked) return;
     const el = iframeRef.current;
@@ -35,25 +34,20 @@ export default function Page() {
 
     const attach = () => {
       try {
-        const doc =
-          el.contentDocument || el.contentWindow?.document;
+        const doc = el.contentDocument || el.contentWindow?.document;
         if (!doc) return;
         const handler = () => setClicks((c) => c + 1);
         doc.addEventListener("pointerdown", handler, { capture: true });
-        // 정리
         const cleanup = () => doc.removeEventListener("pointerdown", handler, true);
-        // iframe이 다른 페이지로 바뀌면 다시 붙이도록
         el.addEventListener("load", attach);
         return () => {
           cleanup();
           el.removeEventListener("load", attach);
         };
       } catch {
-        // 교차 출처면 접근 불가: 그냥 무시(부모 영역 클릭만 집계)
+        /* cross-origin이면 무시 */
       }
     };
-
-    // 최초 load 혹은 이미 로드된 경우 처리
     const cleanup = attach();
     return () => {
       cleanup && cleanup();
@@ -64,12 +58,13 @@ export default function Page() {
     if (!userId.trim()) return alert("아이디를 입력하세요.");
     setLocked(true);
     setStartedAt(Date.now());
-    setClicks(0); // 시작 시 초기화
+    setClicks(0);
   };
 
   const submitPlaytime = async (isUnload = false) => {
     if (!startedAt) return;
     const playSeconds = Math.floor((Date.now() - startedAt) / 1000);
+
     try {
       await fetch("/api/submit", {
         method: "POST",
@@ -78,60 +73,62 @@ export default function Page() {
         body: JSON.stringify({
           userId,
           playSeconds,
-          clicks,               // ← 클릭수 전송
+          clicks,
           game: "unity-webgl",
         }),
       });
-      if (!isUnload) alert(`저장 완료: ${playSeconds}s, 클릭 ${clicks}회`);
+      if (!isUnload) alert("저장 완료");
     } catch {
       if (!isUnload) alert("저장 실패");
     }
   };
 
-  // 부모 컨테이너(placeholder/프레임) 클릭도 집계
+  // 프레임 클릭도 집계
   const handleContainerClick = () => setClicks((c) => c + 1);
 
-  return (
-    <main className="min-h-screen p-6 flex flex-col gap-4 items-center bg-white text-black">
-      {/* 입력/컨트롤 영역 */}
-      <section className="w-full max-w-xs flex flex-col gap-2">
-        <label className="text-sm font-medium">아이디</label>
-        <input
-          className="border rounded p-2"
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
-          placeholder="예: USER123"
-          disabled={locked}
-        />
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") startGame();
+  };
 
-        {!locked ? (
+  return (
+    <main className="min-h-screen p-3 sm:p-6 flex flex-col items-center bg-white text-black gap-3">
+      {/* 상단: 시작 전엔 입력폼, 시작 후엔 아이디 + 종료 버튼만 */}
+      {!locked ? (
+        <section className="w-full max-w-xs flex flex-col gap-2">
+          <label className="text-sm font-medium">아이디</label>
+          <input
+            className="border rounded p-2"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="예: USER123"
+          />
           <button
             className="rounded px-4 py-2 border hover:bg-gray-100"
             onClick={startGame}
           >
             게임 시작
           </button>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <div className="text-sm text-gray-600">
-              시작됨 · 경과 {elapsed}s · 클릭 {clicks}회
-            </div>
+        </section>
+      ) : (
+        <section className="w-full max-w-[540px] px-1 sm:px-0">
+          <div className="w-full flex items-center justify-between gap-2 text-sm text-gray-700">
+            <div className="truncate font-semibold">{userId}</div>
             <button
-              className="rounded px-4 py-2 border hover:bg-gray-100"
+              className="shrink-0 rounded px-3 py-1 border hover:bg-gray-100"
               onClick={() => submitPlaytime(false)}
             >
-              플레이 종료/저장
+              종료/저장
             </button>
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       {/* 게임 프레임 */}
-      <section className="flex justify-center items-center w-full">
+      <section className="flex justify-center items-center w-full" onPointerDown={handleContainerClick}>
         <div
-          className="relative w-full max-w-[540px] border rounded overflow-hidden shadow-md flex justify-center items-center"
+          className="relative w-full max-w-[540px] border rounded overflow-hidden shadow-sm flex justify-center items-center"
           style={{ aspectRatio: "9 / 16", background: "#f5f7fb" }}
-          onPointerDown={handleContainerClick}
         >
           {locked ? (
             <iframe
