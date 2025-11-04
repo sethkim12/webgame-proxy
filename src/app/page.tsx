@@ -147,10 +147,9 @@ export default function Page() {
                 아이디를 입력한 뒤 <b>게임 시작</b>을 눌러 주세요.
               </p>
               <p className="mt-2 text-sm text-red-600 font-semibold">
-                4. 게임이 끝난 후 반드시 <b>종료</b> 버튼을 눌러주세요.
+                게임이 끝난 후 반드시 <b>종료</b> 버튼을 눌러주세요.
               </p>
               <p className="mt-1 text-xs text-gray-500">
-                세로 9:16 화면에 맞춰 표시됩니다.
               </p>
             </div>
           )}
