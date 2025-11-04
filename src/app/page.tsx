@@ -139,7 +139,7 @@ export default function Page() {
             <div className="text-center text-gray-800 px-6 select-none">
               <h3 className="mb-2 text-lg font-bold">게임 준비 완료</h3>
               <p className="mb-1 text-sm">
-                아이디를 입력한 뒤 <b>게임 시작</b>을 눌러 주세요.
+                 아이디를 입력한 뒤 <b>게임 시작</b>을 눌러 주세요.
               </p>
               <p className="mt-2 text-sm text-red-600 font-semibold">
                 게임이 끝난 후 반드시 <b>종료</b> 버튼을 눌러주세요.
