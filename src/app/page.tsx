@@ -80,11 +80,11 @@ export default function Page() {
   };
 
   return (
-    <main className="min-h-screen p-3 sm:p-6 flex flex-col items-center bg-gradient-to-b from-sky-300 to-sky-500 text-black gap-3">
+    <main className="min-h-screen p-3 sm:p-6 flex flex-col items-center bg-white text-black gap-3">
       {/* 상단 영역 */}
       {!locked ? (
         <section className="w-full max-w-xs flex flex-col gap-3 items-center">
-          <label className="text-sm font-medium self-start text-white drop-shadow-sm">아이디</label>
+          <label className="text-sm font-medium self-start text-gray-700">아이디</label>
           <input
             className="border rounded p-2 w-full shadow-sm"
             value={userId}
@@ -101,8 +101,8 @@ export default function Page() {
         </section>
       ) : (
         <section className="w-full max-w-[540px] px-1 sm:px-0">
-          <div className="w-full flex items-center justify-between gap-2 text-sm text-gray-100">
-            <div className="truncate font-semibold text-white drop-shadow-sm">{userId}</div>
+          <div className="w-full flex items-center justify-between gap-2 text-sm text-gray-700">
+            <div className="truncate font-semibold">{userId}</div>
             <button
               className="shrink-0 rounded px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold shadow-lg"
               onClick={() => submitPlaytime(false)}
@@ -119,10 +119,10 @@ export default function Page() {
         onPointerDown={handleContainerClick}
       >
         <div
-          className="relative w-full max-w-[540px] border rounded overflow-hidden shadow-md flex justify-center items-center"
+          className="relative w-full max-w-[540px] border rounded overflow-hidden shadow-md flex justify-center items-start pt-10"
           style={{
             aspectRatio: "9 / 16",
-            background: locked ? "#dbeafe" : "#60a5fa", // 🔵 더 진한 파란 계열
+            background: locked ? "#f5f7fb" : "#bae6fd", // 🔵 게임 전 하늘색, 게임 중 밝은 회색톤
           }}
         >
           {locked ? (
@@ -136,12 +136,12 @@ export default function Page() {
               style={{ border: "none", background: "transparent" }}
             />
           ) : (
-            <div className="text-center text-white px-6 select-none">
-              <h3 className="mb-2 text-lg font-bold drop-shadow-sm">게임 준비 완료</h3>
+            <div className="text-center text-gray-800 px-6 select-none">
+              <h3 className="mb-2 text-lg font-bold">게임 준비 완료</h3>
               <p className="mb-1 text-sm">
                 아이디를 입력한 뒤 <b>게임 시작</b>을 눌러 주세요.
               </p>
-              <p className="mt-2 text-sm text-yellow-200 font-semibold">
+              <p className="mt-2 text-sm text-red-600 font-semibold">
                 게임이 끝난 후 반드시 <b>종료</b> 버튼을 눌러주세요.
               </p>
             </div>
